@@ -6,7 +6,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - group: 'azure-credentials'
+  DB_ADMIN_USERNAME: $(DB_ADMIN_USERNAME)
+  DB_ADMIN_PASSWORD: $(DB_ADMIN_PASSWORD)
+  JWT_SECRET: $(JWT_SECRET)
+  EMAIL_USER: $(EMAIL_USER)
+  EMAIL_PASS: $(EMAIL_PASS)
 
 steps:
 - task: TerraformInstaller@0
@@ -18,7 +22,7 @@ steps:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    backendServiceArm: 'Azure Subscription' 
+    backendServiceArm: 'azure-service-connection'
     backendAzureRmResourceGroupName: 'terraform-state-rg'
     backendAzureRmStorageAccountName: 'terraformstatexxxxx'
     backendAzureRmContainerName: 'tfstate'
@@ -29,11 +33,11 @@ steps:
     provider: 'azurerm'
     command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'Azure Subscription'
+    environmentServiceNameAzureRM: 'azure-service-connection'
 
 - task: TerraformTaskV2@2
   inputs:
     provider: 'azurerm'
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'Azure Subscription'
+    environmentServiceNameAzureRM: 'azure-service-connection'
