@@ -6,6 +6,10 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
+  ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+  ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+  ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+  ARM_TENANT_ID: $(ARM_TENANT_ID)
   DB_ADMIN_USERNAME: $(DB_ADMIN_USERNAME)
   DB_ADMIN_PASSWORD: $(DB_ADMIN_PASSWORD)
   JWT_SECRET: $(JWT_SECRET)
@@ -13,31 +17,72 @@ variables:
   EMAIL_PASS: $(EMAIL_PASS)
 
 steps:
-- task: TerraformInstaller@0
+- task: AzureCLI@2
+  displayName: 'Install Terraform'
   inputs:
-    terraformVersion: 'latest'
+    azureSubscription: 'azure-service-connection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      set -e
+      echo "Installing Terraform..."
+      curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+      sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      sudo apt-get update && sudo apt-get install terraform
+      terraform version
 
-- task: TerraformTaskV2@2
+- task: AzureCLI@2
+  displayName: 'Terraform Init'
   inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    backendServiceArm: 'azure-service-connection'
-    backendAzureRmResourceGroupName: 'terraform-state-rg'
-    backendAzureRmStorageAccountName: 'terraformstatexxxxx'
-    backendAzureRmContainerName: 'tfstate'
-    backendAzureRmKey: 'terraform.tfstate'
+    azureSubscription: 'azure-service-connection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      set -e
+      cd $(System.DefaultWorkingDirectory)/infra
+      echo "Initializing Terraform..."
+      terraform init \
+        -backend-config="storage_account_name=terraformstatexxxxx" \
+        -backend-config="container_name=tfstate" \
+        -backend-config="key=terraform.tfstate" \
+        -backend-config="resource_group_name=terraform-state-rg"
 
-- task: TerraformTaskV2@2
+- task: AzureCLI@2
+  displayName: 'Terraform Plan'
   inputs:
-    provider: 'azurerm'
-    command: 'plan'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'azure-service-connection'
+    azureSubscription: 'azure-service-connection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      set -e
+      cd $(System.DefaultWorkingDirectory)/infra
+      echo "Running Terraform Plan..."
+      terraform plan \
+        -var="prefix=myapp" \
+        -var="resource_group_name=myapp-rg" \
+        -var="location=eastus" \
+        -var="db_admin_username=$(DB_ADMIN_USERNAME)" \
+        -var="db_admin_password=$(DB_ADMIN_PASSWORD)" \
+        -var="jwt_secret=$(JWT_SECRET)" \
+        -var="email_user=$(EMAIL_USER)" \
+        -var="email_pass=$(EMAIL_PASS)"
 
-- task: TerraformTaskV2@2
+- task: AzureCLI@2
+  displayName: 'Terraform Apply'
   inputs:
-    provider: 'azurerm'
-    command: 'apply'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'azure-service-connection'
+    azureSubscription: 'azure-service-connection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      set -e
+      cd $(System.DefaultWorkingDirectory)/infra
+      echo "Applying Terraform Configuration..."
+      terraform apply -auto-approve \
+        -var="prefix=myapp" \
+        -var="resource_group_name=myapp-rg" \
+        -var="location=eastus" \
+        -var="db_admin_username=$(DB_ADMIN_USERNAME)" \
+        -var="db_admin_password=$(DB_ADMIN_PASSWORD)" \
+        -var="jwt_secret=$(JWT_SECRET)" \
+        -var="email_user=$(EMAIL_USER)" \
+        -var="email_pass=$(EMAIL_PASS)"
