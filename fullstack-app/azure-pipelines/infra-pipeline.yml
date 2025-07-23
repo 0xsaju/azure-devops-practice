@@ -18,7 +18,7 @@ steps:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    backendServiceArm: 'azure-service-connection'
+    backendServiceArm: 'Azure Subscription' 
     backendAzureRmResourceGroupName: 'terraform-state-rg'
     backendAzureRmStorageAccountName: 'terraformstatexxxxx'
     backendAzureRmContainerName: 'tfstate'
@@ -29,11 +29,11 @@ steps:
     provider: 'azurerm'
     command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'azure-service-connection'
+    environmentServiceNameAzureRM: 'Azure Subscription'
 
 - task: TerraformTaskV2@2
   inputs:
     provider: 'azurerm'
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
-    environmentServiceNameAzureRM: 'azure-service-connection'
+    environmentServiceNameAzureRM: 'Azure Subscription'
