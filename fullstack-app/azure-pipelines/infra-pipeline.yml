@@ -20,7 +20,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Install Terraform'
   inputs:
-    azureSubscription: 'azure-service-connection'
+    azureSubscription: 'Azure Subscription'  # ← Changed to match your actual service connection name
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -34,7 +34,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Init'
   inputs:
-    azureSubscription: 'azure-service-connection'
+    azureSubscription: 'Azure Subscription'  # ← Changed to match your actual service connection name
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -50,7 +50,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Plan'
   inputs:
-    azureSubscription: 'azure-service-connection'
+    azureSubscription: 'Azure Subscription'  # ← Changed to match your actual service connection name
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -70,7 +70,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Terraform Apply'
   inputs:
-    azureSubscription: 'azure-service-connection'
+    azureSubscription: 'Azure Subscription' 
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
